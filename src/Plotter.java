@@ -1,25 +1,55 @@
 import javax.swing.*;
-import java.awt.Color;
-import java.awt.Component;
-import java.awt.Graphics;
+import java.awt.*;
+import java.util.Random;
+
 import static java.lang.Math.*;
 public class Plotter extends Component {
     static int padding = 50;
     static int width = 360;
-    static int height = 180;
+    static int height = 360;
+
+    static int rate = width/width; //for 10Hz sampling rate, width / 10 and so on
+    static double pi = Math.PI;
+    static int scale = 200; // scale for amplitude of plot
 
     int period = 1;
-    public void plotSine(Graphics g, int period)
-    {
-        g.setColor(Color.red);
+    public void plotSine(Graphics g, int period) {
 
-        for(double x=-width+padding;x<width+padding;x=x+0.01)
-        {
-            double y = 100 * sin(period*(x+width-padding)*(3.1415926/360));
+        int r, gr, b;
 
-            int Y = (int)y;
-            int X = (int)x;
-            g.drawLine(width+X,height-Y,width+X,height-Y);
+        Random rand = null;
+        for (int i = 1; i <= period; i++) {
+            rand = new Random();
+            r = rand.nextInt(255);
+            gr = rand.nextInt(255);
+            b = rand.nextInt(255);
+            g.setColor(new Color(r, gr, b));
+
+            for (double x = -width + padding; x < width + padding; x += rate) {
+                double y = scale * sin(i * (x + width - padding) * (pi / width));
+
+                int Y = (int) y;
+                int X = (int) x;
+                g.drawLine(width + X, height - Y, width + X, height - Y);
+
+            }
+        }
+        r = rand.nextInt(255);
+        gr = rand.nextInt(255);
+        b = rand.nextInt(255);
+        g.setColor(new Color(r, gr, b));
+
+        for (double x = -width + padding; x < width + padding; x += rate) {
+            int Y = 0;
+            int X = 0;
+            double y = 0;
+            for (int i = 1; i <= period; i++) {
+
+                y += scale * sin(i * (x + width - padding) * (pi / width));
+                Y = (int) y;
+                X = (int) x;
+            }
+            g.drawLine(width + X, height - Y, width + X, height - Y);
 
         }
         g.setColor(Color.black);
@@ -27,6 +57,18 @@ public class Plotter extends Component {
 
     public void paint(Graphics g)
     {
+        //two for loops to draw horizontal grid and label the y-axis
+        for(int i = height; i < height*2; i += scale)
+        {
+            g.drawLine(padding,i,width*2+padding,i);
+            if(i != height) //ignore double zero plotting
+                g.drawString("-"+(i - height)/scale,20,i);
+        }
+        for(int i = height; i > 0; i -= scale)
+        {
+            g.drawLine(padding, i, width * 2 + padding, i);
+            g.drawString(""+-1*(i - height)/scale,30,i);
+        }
 
         g.drawLine(padding,height,width * 2 + padding,height); // x-axis
         g.drawLine(padding,0,padding,height * 2); // y-axis
@@ -36,13 +78,7 @@ public class Plotter extends Component {
 
         String[] names = {"0", "\u03c0/2", "\u03c0", "3\u03c0/2", "2\u03c0"};
         int ind = 0;
-        String[] maxmin = {"1","-1"};
 
-//        creating horizontal grid
-        g.drawLine(padding,height-100,width*2+padding,height-100);
-        g.drawString(maxmin[0],padding-25,height-100); //labeling y axis
-        g.drawLine(padding,height+100,width*2+padding,height+100);
-        g.drawString(maxmin[1],padding-25,height+100); //labeling y axis
 
         for(int x = padding; x <= (width+padding)*2; x += 180)
         {
@@ -52,7 +88,8 @@ public class Plotter extends Component {
             ind++;
         }
 
-        plotSine(g,period);
+//        for(int i = 1; i <= period; i++)
+            plotSine(g,period);
 
     }
 
