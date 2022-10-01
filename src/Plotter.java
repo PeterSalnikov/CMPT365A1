@@ -8,9 +8,9 @@ public class Plotter extends Component {
     static int width = 360;
     static int height = 360;
 
-    static int rate = width/width; //for 10Hz sampling rate, width / 10 and so on
+    static double rate = 0.01; //for 10Hz sampling rate, width / 10 and so on
     static double pi = Math.PI;
-    static int scale = 200; // scale for amplitude of plot
+    static int scale = 100; // scale for amplitude of plot
 
     int period = 1;
     public void plotSine(Graphics g, int period) {
@@ -32,6 +32,11 @@ public class Plotter extends Component {
                 int X = (int) x;
                 g.drawLine(width + X, height - Y, width + X, height - Y);
 
+                if( ((int)x-padding) % (width/10) == 0)
+                {
+                    g.drawRect(width+X-5,height-Y-5,10,10);
+                }
+
             }
         }
         r = rand.nextInt(255);
@@ -48,6 +53,12 @@ public class Plotter extends Component {
                 y += scale * sin(i * (x + width - padding) * (pi / width));
                 Y = (int) y;
                 X = (int) x;
+
+            }
+            if( ((int)x - padding) % (width/10) == 0)
+            {
+                g.drawRect(width+X-5,height-Y-5,10,10);
+
             }
             g.drawLine(width + X, height - Y, width + X, height - Y);
 
