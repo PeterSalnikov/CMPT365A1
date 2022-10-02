@@ -106,7 +106,6 @@ public class Plotter extends Component {
 
     public static void main(String[] args)
     {
-
         JFrame frame = new JFrame();
         frame.setSize((width+padding)*2, (height)*2);
         frame.setTitle("Sine Function");
