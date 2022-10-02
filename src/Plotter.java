@@ -2,8 +2,10 @@ import javax.swing.*;
 import java.awt.*;
 import java.util.Random;
 
+
 import static java.lang.Math.*;
 public class Plotter extends Component {
+//    variables made to simplify scaling, parameterization
     static int padding = 50;
     static int width = 360;
     static int height = 360;
@@ -13,36 +15,42 @@ public class Plotter extends Component {
     static int scale = 100; // scale for amplitude of plot
 
     int period = 1;
+
+    public void randColor(Graphics g)
+    {
+        //lower and upper color bounds to prevent colors that are too dark or too light
+        int lower = 50;
+        int upper = 205;
+        int r, gr, b;
+        Random rand = new Random();
+        r = rand.nextInt(lower)+rand.nextInt(upper);
+        gr = rand.nextInt(lower)+rand.nextInt(upper);
+        b = rand.nextInt(lower)+rand.nextInt(upper);
+        g.setColor(new Color(r, gr, b));
+    }
+
     public void plotSine(Graphics g, int period) {
 
-        int r, gr, b;
-
-        Random rand = null;
         for (int i = 1; i <= period; i++) {
-            rand = new Random();
-            r = rand.nextInt(255);
-            gr = rand.nextInt(255);
-            b = rand.nextInt(255);
-            g.setColor(new Color(r, gr, b));
 
-            for (double x = -width + padding; x < width + padding; x += rate) {
+            randColor(g);
+
+            for (double x = -width + padding; x < width + padding; x += rate)
+            {
                 double y = scale * sin(i * (x + width - padding) * (pi / width));
 
                 int Y = (int) y;
                 int X = (int) x;
                 g.drawLine(width + X, height - Y, width + X, height - Y);
-
-                if( ((int)x-padding) % (width/10) == 0)
-                {
-                    g.drawRect(width+X-5,height-Y-5,10,10);
-                }
+//uncomment to highlight 10Hz points of sample
+//                if( ((int)x-padding) % (width/10) == 0)
+//                {
+//                    g.drawRect(width+X-5,height-Y-5,10,10);
+//                }
 
             }
         }
-        r = rand.nextInt(255);
-        gr = rand.nextInt(255);
-        b = rand.nextInt(255);
-        g.setColor(new Color(r, gr, b));
+        randColor(g);
 
         for (double x = -width + padding; x < width + padding; x += rate) {
             int Y = 0;
@@ -55,15 +63,50 @@ public class Plotter extends Component {
                 X = (int) x;
 
             }
-            if( ((int)x - padding) % (width/10) == 0)
-            {
-                g.drawRect(width+X-5,height-Y-5,10,10);
-
-            }
+//            uncomment this for key points on the summed sine graph
+//            if( ((int)x - padding) % (width/10) == 0)
+//            {
+//                g.drawRect(width+X-5,height-Y-5,10,10);
+//
+//            }
             g.drawLine(width + X, height - Y, width + X, height - Y);
 
         }
         g.setColor(Color.black);
+    }
+
+    public void plotQuant(Graphics g, int period)
+    {
+        randColor(g);
+        int frequency = width/10; // a 10Hz frequency, relative to the width
+        int bitrate = 4; // with 2 bits, 4 values can be represented
+
+        int step = 2*scale / bitrate; //gives the step depending on the scale of the graph
+
+        int sign; //to save sign of value after absolution
+        double quant;
+
+        for (double x = -width + padding; x <= width + padding; x += frequency)
+        {
+            double y = scale * sin(period * (x + width - padding) * (pi / width));
+
+            int X = (int) x;
+
+            if(y < 0)
+                sign = -1;
+            else
+                sign = 1;
+
+            y = abs(y);
+
+            quant = y + step - y % step;
+
+            int val = (int)quant * sign;
+
+            g.drawLine(width + X, height, width + X, height - val);
+            g.drawRect(width+X-3,height-val-3,6,6);
+//            System.out.println(quant);
+        }
     }
 
     public void paint(Graphics g)
@@ -86,10 +129,10 @@ public class Plotter extends Component {
 
 //create a separate loop here for labeling. make an array of chars that you need (0, pi, etc)
 //and bump the x every time you need it. repeat for y, in a different loop. Use DrawString
-
+//\u03c0 is unicode for pi. I hardcoded this as the assignment only requires up to 2*pi, though the y axis
+//is scalable.
         String[] names = {"0", "\u03c0/2", "\u03c0", "3\u03c0/2", "2\u03c0"};
         int ind = 0;
-
 
         for(int x = padding; x <= (width+padding)*2; x += 180)
         {
@@ -99,8 +142,8 @@ public class Plotter extends Component {
             ind++;
         }
 
-//        for(int i = 1; i <= period; i++)
             plotSine(g,period);
+            plotQuant(g,period);
 
     }
 
@@ -129,7 +172,6 @@ public class Plotter extends Component {
         }
 
         frame.setVisible(true);
-
 
     }
 
